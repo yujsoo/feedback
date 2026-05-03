@@ -2,158 +2,124 @@ name: Friday Problem
 
 on:
   schedule:
-    - cron: '0 23 * * 4'  # 금요일 오전 8시 KST (목요일 23:00 UTC)
+    - cron: '0 23 * * 4'  # 금요일 오전 8시 KST
   workflow_dispatch:
 
 jobs:
   send-problem:
     runs-on: ubuntu-latest
     steps:
-      - name: Calculate week and send problem
+      - name: Send problem to Discord
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
-          START_DATE="2026-05-09"
-          TODAY=$(date +%Y-%m-%d)
-          START_SEC=$(date -d "$START_DATE" +%s)
-          TODAY_SEC=$(date -d "$TODAY" +%s)
-          DIFF_DAYS=$(( (TODAY_SEC - START_SEC) / 86400 ))
-          WEEK=$(( DIFF_DAYS / 7 + 1 ))
+          python3 << 'PYEOF'
+          import os, requests
+          from datetime import datetime, timedelta, timezone
 
-          if [ $WEEK -lt 1 ] || [ $WEEK -gt 24 ]; then
-            echo "커리큘럼 범위 밖입니다. (${WEEK}주차)"
-            exit 0
-          fi
+          KST = timezone(timedelta(hours=9))
+          today = datetime.now(KST)
+          start = datetime(2026, 5, 9, tzinfo=KST)
+          diff_days = (today - start).days
+          week = diff_days // 7 + 1
 
-          DEADLINE=$(date -d "$TODAY + 3 days" +"%Y년 %-m월 %-d일")
+          if week < 1 or week > 24:
+              print(f"커리큘럼 범위 밖: {week}주차")
+              exit(0)
 
-          case $WEEK in
-            1)  TOPIC="CSS 키프레임으로 카드 UI 만들기"
-                TOOL="HTML + CSS"
-                CONTENT="아래 조건을 모두 충족하는 카드 컴포넌트를 만들어보세요.\n\n**① 페이지 진입 시** 카드가 아래에서 위로 서서히 나타남 (fade + slide up)\n**② 카드에 hover 시** 살짝 위로 떠오르는 효과\n**③ 카드 안에 버튼이 있고**, 버튼 클릭 시 카드가 흔들리는 애니메이션 (shake)\n\n```css\n@keyframes fadeSlideUp { ... }\n@keyframes shake { ... }\n```\n\n🎯 \`animation\`, \`transition\`, \`transform\` 세 가지를 모두 사용해보세요!"
-                ;;
-            2)  TOPIC="Vue Transition으로 탭 전환 애니메이션"
-                TOOL="Vue 3"
-                CONTENT="Vue의 \`<Transition>\` 컴포넌트를 사용해 탭 UI를 만들어보세요.\n\n**① 탭 3개** — '소개', '경력', '연락처'\n**② 탭 전환 시** 페이드 + 슬라이드 애니메이션\n**③ 탭 방향에 따라** 왼쪽/오른쪽으로 슬라이드\n\n```vue\n<Transition name=\"slide\">\n  <component :is=\"currentTab\" :key=\"currentTab\" />\n</Transition>\n```"
-                ;;
-            3)  TOPIC="Framer Motion으로 카드 리스트 애니메이션"
-                TOOL="React + Framer Motion"
-                CONTENT="Framer Motion을 사용해 카드 리스트 UI를 만들어보세요.\n\n**① 진입 애니메이션** — 카드들이 순차적으로 아래에서 올라오며 나타남 (stagger)\n**② hover 시** 카드가 살짝 커지는 scale 효과\n**③ 클릭 시** 카드가 눌리는 tap 효과\n\n```jsx\nimport { motion } from 'framer-motion';\n\n<motion.div\n  initial={{ opacity: 0, y: 20 }}\n  animate={{ opacity: 1, y: 0 }}\n  whileHover={{ scale: 1.05 }}\n  whileTap={{ scale: 0.95 }}\n/>\n```"
-                ;;
-            4)  TOPIC="GSAP으로 텍스트 & 요소 애니메이션"
-                TOOL="HTML + GSAP"
-                CONTENT="GSAP을 사용해 인트로 애니메이션을 만들어보세요.\n\n**① 제목 텍스트** — 글자가 하나씩 순서대로 나타남\n**② 서브 텍스트** — 제목 애니메이션 후 페이드인\n**③ 버튼** — 마지막으로 아래에서 올라오며 등장\n\n```js\nimport { gsap } from 'gsap';\n\ngsap.timeline()\n  .from('.title', { ... })\n  .from('.subtitle', { ... })\n  .from('.btn', { ... });\n```"
-                ;;
-            5)  TOPIC="페이지 전환 애니메이션"
-                TOOL="Next.js + Framer Motion"
-                CONTENT="Next.js에서 페이지 이동 시 애니메이션을 구현해보세요.\n\n**① 3개 페이지** — /, /about, /work\n**② 페이지 전환 시** 현재 페이지는 왼쪽으로 사라지고 새 페이지는 오른쪽에서 등장\n**③ 레이아웃에 AnimatePresence 적용**\n\n```jsx\nimport { AnimatePresence, motion } from 'framer-motion';\n\n<AnimatePresence mode=\"wait\">\n  <motion.div key={pathname} ...>\n    {children}\n  </motion.div>\n</AnimatePresence>\n```"
-                ;;
-            6)  TOPIC="GSAP ScrollTrigger로 스크롤 애니메이션"
-                TOOL="GSAP + ScrollTrigger"
-                CONTENT="스크롤에 반응하는 랜딩 페이지 섹션을 만들어보세요.\n\n**① 섹션 3개** 이상 (Hero, About, Work)\n**② 스크롤 진입 시** 각 섹션 요소가 순차적으로 나타남\n**③ 핀(pin) 효과** — 한 섹션에서 스크롤해도 고정되며 내부 요소가 애니메이션\n\n```js\nimport ScrollTrigger from 'gsap/ScrollTrigger';\ngsap.registerPlugin(ScrollTrigger);\n\ngsap.from('.section', {\n  scrollTrigger: { trigger: '.section', start: 'top 80%' },\n  opacity: 0, y: 50\n});\n```"
-                ;;
-            7)  TOPIC="Vue TransitionGroup으로 리스트 애니메이션"
-                TOOL="Vue 3 + TransitionGroup"
-                CONTENT="Vue의 \`<TransitionGroup>\`으로 할 일 목록을 만들어보세요.\n\n**① 항목 추가 시** 위에서 아래로 슬라이드 + 페이드인\n**② 항목 삭제 시** 오른쪽으로 밀리며 페이드아웃\n**③ 항목 이동 시** 자연스럽게 위치 이동 (FLIP 애니메이션)\n\n```vue\n<TransitionGroup name=\"list\" tag=\"ul\">\n  <li v-for=\"item in items\" :key=\"item.id\">{{ item.text }}</li>\n</TransitionGroup>\n```"
-                ;;
-            8)  TOPIC="Framer Motion으로 드래그 인터랙션"
-                TOOL="React + Framer Motion"
-                CONTENT="드래그 가능한 카드 UI를 만들어보세요.\n\n**① 카드 자유 드래그** — 화면 안에서 드래그 가능\n**② 드래그 영역 제한** — dragConstraints로 특정 영역 안에서만 이동\n**③ 드래그 앤 드롭** — 두 영역 간 카드 이동 (Todo → Done)\n\n```jsx\n<motion.div\n  drag\n  dragConstraints={{ left: 0, right: 300, top: 0, bottom: 300 }}\n  dragElastic={0.1}\n/>\n```"
-                ;;
-            9)  TOPIC="호버 & 마이크로 인터랙션"
-                TOOL="Vue 3 + GSAP"
-                CONTENT="디테일한 마이크로 인터랙션이 있는 버튼 모음을 만들어보세요.\n\n**① 마그네틱 버튼** — 마우스가 버튼 근처에 오면 끌려오는 효과\n**② 물결 효과** — 클릭 시 클릭 지점에서 퍼져나가는 ripple\n**③ 텍스트 호버** — 호버 시 텍스트가 위아래로 교체되는 효과\n\n```js\n// GSAP으로 마우스 위치 추적\nel.addEventListener('mousemove', (e) => {\n  gsap.to(btn, { x: ..., y: ... });\n});\n```"
-                ;;
-            10) TOPIC="모달 & 토스트 애니메이션"
-                TOOL="React + Framer Motion"
-                CONTENT="Framer Motion으로 모달과 토스트 UI를 만들어보세요.\n\n**① 모달** — 배경은 페이드인, 모달 박스는 아래에서 위로 스프링 효과\n**② 모달 닫기** — 역방향 애니메이션 후 사라짐\n**③ 토스트** — 오른쪽 하단에서 등장, 3초 후 자동으로 위로 사라짐\n\n```jsx\n<AnimatePresence>\n  {isOpen && (\n    <motion.div\n      initial={{ opacity: 0, scale: 0.9 }}\n      animate={{ opacity: 1, scale: 1 }}\n      exit={{ opacity: 0, scale: 0.9 }}\n    />\n  )}\n</AnimatePresence>\n```"
-                ;;
-            11) TOPIC="스크롤 기반 랜딩 페이지"
-                TOOL="GSAP + ScrollTrigger"
-                CONTENT="GSAP ScrollTrigger를 활용한 풀페이지 랜딩 페이지를 만들어보세요.\n\n**① Hero 섹션** — 스크롤 시 배경 패럴랙스 효과\n**② About 섹션** — 텍스트가 스크롤에 따라 한 줄씩 나타남\n**③ Work 섹션** — 가로 스크롤 (수평 스크롤 갤러리)\n**④ 스크롤 진행 바** — 상단에 현재 스크롤 진행률 표시\n\n최소 4개 섹션, 실제 서비스처럼 완성도 있게 만들어보세요!"
-                ;;
-            12) TOPIC="실전 클론 — 자유 선택"
-                TOOL="React 또는 Vue (자유 선택)"
-                CONTENT="지금까지 배운 것을 모두 활용해서 실제 사이트를 클론해보세요.\n\n**추천 사이트:**\n- Apple — 스크롤 애니메이션\n- Linear — 마이크로 인터랙션\n- Stripe — 그라디언트 + 모션\n- 본인이 좋아하는 사이트 자유 선택 가능!\n\n**필수 요소:**\n✅ 진입 애니메이션\n✅ 스크롤 애니메이션\n✅ hover 인터랙션\n✅ 반응형\n\n12주 마지막 과제입니다. 최선을 다해보세요! 🎉"
-                ;;
-            13) TOPIC="Three.js 기초 — 3D 오브젝트 만들기"
-                TOOL="Three.js"
-                CONTENT="Three.js로 브라우저에 3D 오브젝트를 렌더링해보세요.\n\n**① Scene 세팅** — Scene, Camera, Renderer 기본 구성\n**② 3D 도형** — BoxGeometry, SphereGeometry 생성 + 재질(Material) 적용\n**③ 애니메이션** — requestAnimationFrame으로 오브젝트 회전\n**④ 조명** — AmbientLight, DirectionalLight 추가\n\n```js\nconst scene = new THREE.Scene();\nconst camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);\nconst geometry = new THREE.BoxGeometry();\nconst material = new THREE.MeshStandardMaterial({ color: 0x6366f1 });\nconst cube = new THREE.Mesh(geometry, material);\n```"
-                ;;
-            14) TOPIC="Lottie 애니메이션 활용하기"
-                TOOL="HTML + Lottie"
-                CONTENT="Lottie를 사용해 JSON 애니메이션을 웹에 적용해보세요.\n\n**① LottieFiles에서 무료 애니메이션 다운로드** — lottiefiles.com\n**② 기본 재생** — autoplay, loop 설정\n**③ 인터랙션** — 버튼 hover 시 재생, 클릭 시 정지\n**④ 속도 조절** — setSpeed()로 재생 속도 변경\n\n```js\nimport lottie from 'lottie-web';\n\nconst anim = lottie.loadAnimation({\n  container: document.getElementById('lottie'),\n  renderer: 'svg',\n  loop: true,\n  autoplay: false,\n  path: 'animation.json',\n});\n\nbtn.addEventListener('mouseenter', () => anim.play());\nbtn.addEventListener('mouseleave', () => anim.stop());\n```"
-                ;;
-            15) TOPIC="CSS 3D Transform으로 카드 뒤집기"
-                TOOL="HTML + CSS"
-                CONTENT="순수 CSS 3D Transform으로 플립 카드를 만들어보세요.\n\n**① 앞면 / 뒷면** — 각각 다른 내용의 카드 2개\n**② hover 시 Y축 180도 회전** — perspective 설정 필수\n**③ backface-visibility** — 뒷면이 보이지 않도록\n**④ 4개 이상의 카드**를 그리드로 배치\n\n```css\n.card-inner {\n  transform-style: preserve-3d;\n  transition: transform 0.6s;\n}\n.card:hover .card-inner {\n  transform: rotateY(180deg);\n}\n.card-back {\n  backface-visibility: hidden;\n  transform: rotateY(180deg);\n}\n```"
-                ;;
-            16) TOPIC="SVG 패스 애니메이션"
-                TOOL="HTML + CSS + GSAP"
-                CONTENT="SVG와 GSAP으로 드로잉 애니메이션을 만들어보세요.\n\n**① SVG 선 그리기 애니메이션** — stroke-dasharray, stroke-dashoffset으로 선이 그려지는 효과\n**② 로고 드로잉** — SVG 패스가 순서대로 그려지는 애니메이션\n**③ 스크롤 연동** — 스크롤 내릴수록 선이 그려짐\n\n```js\ngsap.fromTo(path, \n  { strokeDashoffset: path.getTotalLength() },\n  { strokeDashoffset: 0, duration: 2, ease: 'none',\n    scrollTrigger: { trigger: path, scrub: true }\n  }\n);\n```"
-                ;;
-            17) TOPIC="커스텀 커서 인터랙션"
-                TOOL="HTML + GSAP"
-                CONTENT="기본 커서를 숨기고 커스텀 커서를 만들어보세요.\n\n**① 기본 커서** — 동그란 원이 마우스를 부드럽게 따라다님 (GSAP lerp)\n**② 호버 효과** — 링크/버튼 위에서 커서가 커지거나 색이 변함\n**③ 클릭 효과** — 클릭 시 커서가 잠깐 작아졌다 돌아옴\n**④ 텍스트 커서** — 특정 영역에서 커서 안에 텍스트 표시\n\n```js\ndocument.addEventListener('mousemove', (e) => {\n  gsap.to(cursor, {\n    x: e.clientX,\n    y: e.clientY,\n    duration: 0.3,\n    ease: 'power2.out'\n  });\n});\n```"
-                ;;
-            18) TOPIC="무한 수평 스크롤 갤러리"
-                TOOL="Vue 3 + GSAP"
-                CONTENT="끝없이 흐르는 수평 스크롤 갤러리를 만들어보세요.\n\n**① 이미지/카드 무한 루프** — 복사본을 이어붙여 끊김 없이 반복\n**② 마우스 hover 시 속도 조절** — hover하면 느려지고, 벗어나면 원래 속도\n**③ 방향 전환** — 위 아래 두 줄이 반대 방향으로 흐름\n\n```js\ngsap.to('.track', {\n  x: '-50%',\n  duration: 20,\n  ease: 'none',\n  repeat: -1,\n});\n```"
-                ;;
-            19) TOPIC="Canvas 파티클 효과"
-                TOOL="HTML + Canvas"
-                CONTENT="Canvas API로 인터랙티브 파티클 시스템을 만들어보세요.\n\n**① 파티클 생성** — 랜덤 위치, 속도, 크기의 점들이 움직임\n**② 마우스 인터랙션** — 마우스 근처 파티클이 밀려남\n**③ 연결선** — 가까운 파티클끼리 선으로 연결\n**④ 색상 변화** — 시간에 따라 색상이 서서히 변함\n\n```js\nclass Particle {\n  constructor() {\n    this.x = Math.random() * canvas.width;\n    this.y = Math.random() * canvas.height;\n    this.vx = (Math.random() - 0.5) * 2;\n    this.vy = (Math.random() - 0.5) * 2;\n  }\n  update() { this.x += this.vx; this.y += this.vy; }\n}\n```"
-                ;;
-            20) TOPIC="GSAP 모핑 & 텍스트 애니메이션"
-                TOOL="GSAP"
-                CONTENT="GSAP으로 고급 텍스트 & 모핑 애니메이션을 만들어보세요.\n\n**① SplitText** — 텍스트를 글자/단어 단위로 분리해 순차 애니메이션\n**② 카운터 애니메이션** — 숫자가 0에서 목표값까지 올라가는 효과\n**③ MorphSVG** — SVG 도형이 다른 도형으로 부드럽게 변환\n\n```js\n// 텍스트를 글자 단위로 애니메이션\ngsap.from('.title span', {\n  opacity: 0,\n  y: 100,\n  rotationX: -90,\n  stagger: 0.05,\n  duration: 0.8,\n  ease: 'back.out(2)'\n});\n\n// 카운터\ngsap.to(counter, { innerText: 1234, snap: { innerText: 1 }, duration: 2 });\n```"
-                ;;
-            21) TOPIC="인터랙티브 차트 만들기"
-                TOOL="React + Recharts"
-                CONTENT="Recharts로 인터랙티브 데이터 시각화를 구현해보세요.\n\n**① 라인 차트** — 월별 방문자 수 추이 (애니메이션 진입)\n**② 바 차트** — 카테고리별 매출 비교\n**③ 커스텀 툴팁** — hover 시 스타일링된 툴팁 표시\n**④ 반응형** — 모바일/데스크탑 모두 잘 보이도록\n\n```jsx\nimport { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';\n\n<ResponsiveContainer width=\"100%\" height={300}>\n  <LineChart data={data}>\n    <Line type=\"monotone\" dataKey=\"visitors\" stroke=\"#6366f1\" strokeWidth={2} />\n    <Tooltip content={<CustomTooltip />} />\n  </LineChart>\n</ResponsiveContainer>\n```"
-                ;;
-            22) TOPIC="3D 카드 틸트 + 글로우 효과"
-                TOOL="React + Framer Motion"
-                CONTENT="마우스 위치에 반응하는 3D 틸트 카드를 만들어보세요.\n\n**① 마우스 위치 추적** — 카드 내 마우스 위치에 따라 X/Y 기울기\n**② 반사광 효과** — 마우스 위치에 따라 빛이 반사되는 그라디언트\n**③ 호버 시 부유** — z-depth가 올라오는 느낌의 그림자\n**④ 스프링 물리** — 마우스를 떼면 스프링처럼 원위치\n\n```jsx\nconst rotateX = useMotionValue(0);\nconst rotateY = useMotionValue(0);\n\nfunction handleMouseMove(e) {\n  const rect = e.currentTarget.getBoundingClientRect();\n  const x = (e.clientY - rect.top - rect.height / 2) / 10;\n  const y = -(e.clientX - rect.left - rect.width / 2) / 10;\n  rotateX.set(x);\n  rotateY.set(y);\n}\n```"
-                ;;
-            23) TOPIC="풀페이지 스크롤 구현"
-                TOOL="GSAP + ScrollTrigger"
-                CONTENT="섹션별로 스냅되는 풀페이지 스크롤을 만들어보세요.\n\n**① 섹션 스냅** — 스크롤 시 다음 섹션으로 부드럽게 이동\n**② 진행 인디케이터** — 현재 섹션 위치를 점으로 표시 (우측)\n**③ 각 섹션 진입 애니메이션** — 섹션별로 다른 방향에서 등장\n**④ 키보드 지원** — 방향키로 섹션 이동\n\n```js\nconst sections = gsap.utils.toArray('.section');\nsections.forEach((section) => {\n  ScrollTrigger.create({\n    trigger: section,\n    start: 'top top',\n    snap: 1,\n    pin: true,\n  });\n});\n```"
-                ;;
-            24) TOPIC="포트폴리오 랜딩 페이지 완성"
-                TOOL="React 또는 Vue (자유 선택)"
-                CONTENT="24주 멘토링 최종 과제! 지금까지 배운 모든 것을 담은 포트폴리오 랜딩 페이지를 완성하세요.\n\n**필수 포함 요소:**\n✅ Hero 섹션 (진입 애니메이션)\n✅ About 섹션 (스크롤 애니메이션)\n✅ 작업물(Works) 섹션 (hover 인터랙션)\n✅ 연락처(Contact) 섹션\n✅ 반응형 (모바일 대응)\n✅ 다크모드\n\n**추가하면 좋은 것:**\n⭐ 커스텀 커서\n⭐ 페이지 전환 애니메이션\n⭐ 스크롤 진행 바\n\n24주 동안 정말 수고 많으셨어요! 완성된 포트폴리오를 공유해주세요 🎉🎊"
-                ;;
-          esac
+          deadline = (today + timedelta(days=3)).strftime("%Y년 %-m월 %-d일")
 
-          PAYLOAD=$(cat <<EOF
-          {
-            "username": "Frontend Mentor",
-            "embeds": [{
-              "title": "🎨 ${WEEK}주차 금요일 문제 — UI + 모션편",
-              "color": 15844367,
-              "fields": [
-                {
-                  "name": "🛠 사용 도구",
-                  "value": "**${TOOL}**"
-                },
-                {
-                  "name": "문제: ${TOPIC}",
-                  "value": "${CONTENT}"
-                },
-                {
-                  "name": "⏰ 기한",
-                  "value": "**${DEADLINE}** 자정까지\nStackBlitz 또는 CodePen 링크를 디스코드에 공유해주세요!"
-                }
-              ],
-              "footer": {
-                "text": "${WEEK}주차 / 금요일 / ${TOOL} | 퍼블리싱 실력 발휘할 차례예요 🎨"
-              }
-            }]
+          problems = {
+              1: ("HTML + CSS", "CSS 키프레임으로 카드 UI 만들기",
+                  "아래 조건을 모두 충족하는 카드 컴포넌트를 만들어보세요.\n\n**① 페이지 진입 시** 카드가 아래에서 위로 서서히 나타남 (fade + slide up)\n**② 카드에 hover 시** 살짝 위로 떠오르는 효과\n**③ 카드 안 버튼 클릭 시** 카드가 흔들리는 애니메이션 (shake)\n\n```css\n@keyframes fadeSlideUp {\n  from { opacity: 0; transform: translateY(30px); }\n  to   { opacity: 1; transform: translateY(0); }\n}\n@keyframes shake {\n  0%, 100% { transform: translateX(0); }\n  25%      { transform: translateX(-8px); }\n  75%      { transform: translateX(8px); }\n}\n```\n\n🎯 `animation`, `transition`, `transform` 세 가지를 모두 사용해보세요!"),
+
+              2: ("Vue 3", "Vue Transition으로 탭 전환 애니메이션",
+                  "Vue의 `<Transition>` 컴포넌트를 사용해 탭 UI를 만들어보세요.\n\n**① 탭 3개** — '소개', '경력', '연락처'\n**② 탭 전환 시** 페이드 + 슬라이드 애니메이션\n**③ 탭 방향에 따라** 왼쪽/오른쪽으로 슬라이드\n\n```vue\n<Transition name=\"slide\">\n  <component :is=\"currentTab\" :key=\"currentTab\" />\n</Transition>\n```"),
+
+              3: ("React + Framer Motion", "Framer Motion으로 카드 리스트 애니메이션",
+                  "Framer Motion을 사용해 카드 리스트 UI를 만들어보세요.\n\n**① 진입 애니메이션** — 카드들이 순차적으로 아래에서 올라오며 나타남 (stagger)\n**② hover 시** 카드가 살짝 커지는 scale 효과\n**③ 클릭 시** 카드가 눌리는 tap 효과\n\n```jsx\nimport { motion } from 'framer-motion';\n\n<motion.div\n  initial={{ opacity: 0, y: 20 }}\n  animate={{ opacity: 1, y: 0 }}\n  whileHover={{ scale: 1.05 }}\n  whileTap={{ scale: 0.95 }}\n/>\n```"),
+
+              4: ("HTML + GSAP", "GSAP으로 텍스트 & 요소 애니메이션",
+                  "GSAP을 사용해 인트로 애니메이션을 만들어보세요.\n\n**① 제목 텍스트** — 글자가 하나씩 순서대로 나타남\n**② 서브 텍스트** — 제목 애니메이션 후 페이드인\n**③ 버튼** — 마지막으로 아래에서 올라오며 등장\n\n```js\nimport { gsap } from 'gsap';\n\ngsap.timeline()\n  .from('.title',    { opacity: 0, y: -30, stagger: 0.05 })\n  .from('.subtitle', { opacity: 0, y: 20 }, '-=0.3')\n  .from('.btn',      { opacity: 0, y: 20 }, '-=0.2');\n```"),
+
+              5: ("Next.js + Framer Motion", "페이지 전환 애니메이션",
+                  "Next.js에서 페이지 이동 시 애니메이션을 구현해보세요.\n\n**① 3개 페이지** — /, /about, /work\n**② 페이지 전환 시** 현재 페이지는 왼쪽으로 사라지고 새 페이지는 오른쪽에서 등장\n**③ 레이아웃에 AnimatePresence 적용**\n\n```jsx\nimport { AnimatePresence, motion } from 'framer-motion';\n\n<AnimatePresence mode=\"wait\">\n  <motion.div key={pathname}\n    initial={{ opacity: 0, x: 100 }}\n    animate={{ opacity: 1, x: 0 }}\n    exit={{ opacity: 0, x: -100 }}\n  >\n    {children}\n  </motion.div>\n</AnimatePresence>\n```"),
+
+              6: ("GSAP + ScrollTrigger", "ScrollTrigger로 스크롤 애니메이션",
+                  "스크롤에 반응하는 랜딩 페이지 섹션을 만들어보세요.\n\n**① 섹션 3개 이상** (Hero, About, Work)\n**② 스크롤 진입 시** 각 섹션 요소가 순차적으로 나타남\n**③ 핀(pin) 효과** — 한 섹션에서 스크롤해도 고정되며 내부 요소가 애니메이션\n\n```js\nimport ScrollTrigger from 'gsap/ScrollTrigger';\ngsap.registerPlugin(ScrollTrigger);\n\ngsap.from('.section-content', {\n  scrollTrigger: { trigger: '.section', start: 'top 80%' },\n  opacity: 0, y: 50, duration: 1\n});\n```"),
+
+              7: ("Vue 3 + TransitionGroup", "Vue TransitionGroup으로 리스트 애니메이션",
+                  "Vue의 `<TransitionGroup>`으로 할 일 목록을 만들어보세요.\n\n**① 항목 추가 시** 위에서 아래로 슬라이드 + 페이드인\n**② 항목 삭제 시** 오른쪽으로 밀리며 페이드아웃\n**③ 항목 이동 시** 자연스럽게 위치 이동 (FLIP 애니메이션)\n\n```vue\n<TransitionGroup name=\"list\" tag=\"ul\">\n  <li v-for=\"item in items\" :key=\"item.id\">{{ item.text }}</li>\n</TransitionGroup>\n```"),
+
+              8: ("React + Framer Motion", "드래그 인터랙션",
+                  "드래그 가능한 카드 UI를 만들어보세요.\n\n**① 카드 자유 드래그** — 화면 안에서 드래그 가능\n**② 드래그 영역 제한** — dragConstraints로 특정 영역 안에서만 이동\n**③ 드래그 앤 드롭** — 두 영역 간 카드 이동 (Todo → Done)\n\n```jsx\n<motion.div\n  drag\n  dragConstraints={{ left: 0, right: 300, top: 0, bottom: 300 }}\n  dragElastic={0.1}\n  whileDrag={{ scale: 1.1, rotate: 5 }}\n/>\n```"),
+
+              9: ("Vue 3 + GSAP", "호버 & 마이크로 인터랙션",
+                  "디테일한 마이크로 인터랙션이 있는 버튼 모음을 만들어보세요.\n\n**① 마그네틱 버튼** — 마우스가 버튼 근처에 오면 끌려오는 효과\n**② 물결 효과** — 클릭 시 클릭 지점에서 퍼져나가는 ripple\n**③ 텍스트 호버** — 호버 시 텍스트가 위아래로 교체되는 효과\n\n```js\nel.addEventListener('mousemove', (e) => {\n  const rect = el.getBoundingClientRect();\n  const x = e.clientX - rect.left - rect.width / 2;\n  const y = e.clientY - rect.top - rect.height / 2;\n  gsap.to(btn, { x: x * 0.3, y: y * 0.3, duration: 0.3 });\n});\n```"),
+
+              10: ("React + Framer Motion", "모달 & 토스트 애니메이션",
+                   "Framer Motion으로 모달과 토스트 UI를 만들어보세요.\n\n**① 모달** — 배경은 페이드인, 모달 박스는 아래에서 위로 스프링 효과\n**② 모달 닫기** — 역방향 애니메이션 후 사라짐\n**③ 토스트** — 오른쪽 하단에서 등장, 3초 후 자동으로 위로 사라짐\n\n```jsx\n<AnimatePresence>\n  {isOpen && (\n    <motion.div\n      initial={{ opacity: 0, scale: 0.9, y: 20 }}\n      animate={{ opacity: 1, scale: 1, y: 0 }}\n      exit={{ opacity: 0, scale: 0.9 }}\n      transition={{ type: 'spring', stiffness: 300 }}\n    />\n  )}\n</AnimatePresence>\n```"),
+
+              11: ("GSAP + ScrollTrigger", "스크롤 기반 랜딩 페이지",
+                   "GSAP ScrollTrigger를 활용한 풀페이지 랜딩 페이지를 만들어보세요.\n\n**① Hero 섹션** — 스크롤 시 배경 패럴랙스 효과\n**② About 섹션** — 텍스트가 스크롤에 따라 한 줄씩 나타남\n**③ Work 섹션** — 가로 스크롤 (수평 스크롤 갤러리)\n**④ 스크롤 진행 바** — 상단에 현재 스크롤 진행률 표시\n\n최소 4개 섹션, 실제 서비스처럼 완성도 있게 만들어보세요!"),
+
+              12: ("React 또는 Vue", "실전 클론 — 자유 선택",
+                   "지금까지 배운 것을 모두 활용해서 실제 사이트를 클론해보세요.\n\n**추천 사이트:**\n- Apple — 스크롤 애니메이션\n- Linear — 마이크로 인터랙션\n- Stripe — 그라디언트 + 모션\n- 본인이 좋아하는 사이트 자유 선택!\n\n**필수 요소:**\n✅ 진입 애니메이션\n✅ 스크롤 애니메이션\n✅ hover 인터랙션\n✅ 반응형"),
+
+              13: ("Three.js", "Three.js 기초 — 3D 오브젝트 만들기",
+                   "Three.js로 브라우저에 3D 오브젝트를 렌더링해보세요.\n\n**① Scene 세팅** — Scene, Camera, Renderer 기본 구성\n**② 3D 도형** — BoxGeometry, SphereGeometry 생성 + Material 적용\n**③ 애니메이션** — requestAnimationFrame으로 오브젝트 회전\n**④ 조명** — AmbientLight, DirectionalLight 추가\n\n```js\nconst scene = new THREE.Scene();\nconst geometry = new THREE.BoxGeometry();\nconst material = new THREE.MeshStandardMaterial({ color: 0x6366f1 });\nconst cube = new THREE.Mesh(geometry, material);\nscene.add(cube);\n```"),
+
+              14: ("HTML + Lottie", "Lottie 애니메이션 활용하기",
+                   "Lottie를 사용해 JSON 애니메이션을 웹에 적용해보세요.\n\n**① lottiefiles.com 에서 무료 애니메이션 다운로드**\n**② 기본 재생** — autoplay, loop 설정\n**③ 인터랙션** — 버튼 hover 시 재생, 클릭 시 정지\n**④ 속도 조절** — setSpeed()로 재생 속도 변경\n\n```js\nimport lottie from 'lottie-web';\n\nconst anim = lottie.loadAnimation({\n  container: document.getElementById('lottie'),\n  renderer: 'svg',\n  loop: true,\n  autoplay: false,\n  path: 'animation.json',\n});\nbtn.addEventListener('mouseenter', () => anim.play());\n```"),
+
+              15: ("HTML + CSS", "CSS 3D Transform으로 카드 뒤집기",
+                   "순수 CSS 3D Transform으로 플립 카드를 만들어보세요.\n\n**① 앞면 / 뒷면** — 각각 다른 내용의 카드 2개\n**② hover 시 Y축 180도 회전** — perspective 설정 필수\n**③ backface-visibility** — 뒷면이 보이지 않도록\n**④ 4개 이상의 카드**를 그리드로 배치\n\n```css\n.card-inner {\n  transform-style: preserve-3d;\n  transition: transform 0.6s;\n}\n.card:hover .card-inner { transform: rotateY(180deg); }\n.card-back {\n  backface-visibility: hidden;\n  transform: rotateY(180deg);\n}\n```"),
+
+              16: ("HTML + CSS + GSAP", "SVG 패스 드로잉 애니메이션",
+                   "SVG와 GSAP으로 드로잉 애니메이션을 만들어보세요.\n\n**① SVG 선 그리기 애니메이션** — stroke-dasharray/dashoffset으로 선이 그려지는 효과\n**② 로고 드로잉** — SVG 패스가 순서대로 그려지는 애니메이션\n**③ 스크롤 연동** — 스크롤 내릴수록 선이 그려짐\n\n```js\nconst length = path.getTotalLength();\ngsap.set(path, { strokeDasharray: length, strokeDashoffset: length });\ngsap.to(path, {\n  strokeDashoffset: 0,\n  scrollTrigger: { trigger: path, scrub: true }\n});\n```"),
+
+              17: ("HTML + GSAP", "커스텀 커서 인터랙션",
+                   "기본 커서를 숨기고 커스텀 커서를 만들어보세요.\n\n**① 기본 커서** — 동그란 원이 마우스를 부드럽게 따라다님\n**② 호버 효과** — 링크/버튼 위에서 커서가 커지거나 색이 변함\n**③ 클릭 효과** — 클릭 시 커서가 잠깐 작아졌다 돌아옴\n**④ 텍스트 커서** — 특정 영역에서 커서 안에 텍스트 표시\n\n```js\ndocument.addEventListener('mousemove', (e) => {\n  gsap.to(cursor, {\n    x: e.clientX, y: e.clientY,\n    duration: 0.3, ease: 'power2.out'\n  });\n});\n```"),
+
+              18: ("Vue 3 + GSAP", "무한 수평 스크롤 갤러리",
+                   "끝없이 흐르는 수평 스크롤 갤러리를 만들어보세요.\n\n**① 이미지/카드 무한 루프** — 복사본을 이어붙여 끊김 없이 반복\n**② hover 시 속도 조절** — hover하면 느려지고, 벗어나면 원래 속도\n**③ 방향 전환** — 위 아래 두 줄이 반대 방향으로 흐름\n\n```js\ngsap.to('.track', {\n  x: '-50%',\n  duration: 20,\n  ease: 'none',\n  repeat: -1,\n});\n```"),
+
+              19: ("HTML + Canvas", "Canvas 파티클 효과",
+                   "Canvas API로 인터랙티브 파티클 시스템을 만들어보세요.\n\n**① 파티클 생성** — 랜덤 위치, 속도, 크기의 점들이 움직임\n**② 마우스 인터랙션** — 마우스 근처 파티클이 밀려남\n**③ 연결선** — 가까운 파티클끼리 선으로 연결\n\n```js\nclass Particle {\n  constructor() {\n    this.x = Math.random() * canvas.width;\n    this.y = Math.random() * canvas.height;\n    this.vx = (Math.random() - 0.5) * 2;\n    this.vy = (Math.random() - 0.5) * 2;\n  }\n  update() { this.x += this.vx; this.y += this.vy; }\n}\n```"),
+
+              20: ("GSAP", "GSAP 텍스트 & 카운터 애니메이션",
+                   "GSAP으로 고급 텍스트 & 카운터 애니메이션을 만들어보세요.\n\n**① 텍스트 글자 단위 애니메이션** — span으로 분리 후 순차 등장\n**② 카운터 애니메이션** — 숫자가 0에서 목표값까지 올라가는 효과\n**③ 타임라인 조합** — 위 두 가지를 하나의 타임라인으로 연결\n\n```js\n// 카운터\ngsap.to(el, {\n  innerText: 1234,\n  snap: { innerText: 1 },\n  duration: 2,\n  ease: 'power1.out'\n});\n```"),
+
+              21: ("React + Recharts", "인터랙티브 차트 만들기",
+                   "Recharts로 인터랙티브 데이터 시각화를 구현해보세요.\n\n**① 라인 차트** — 월별 방문자 수 추이 (애니메이션 진입)\n**② 바 차트** — 카테고리별 매출 비교\n**③ 커스텀 툴팁** — hover 시 스타일링된 툴팁 표시\n**④ 반응형** — 모바일/데스크탑 모두 대응\n\n```jsx\n<ResponsiveContainer width=\"100%\" height={300}>\n  <LineChart data={data}>\n    <Line type=\"monotone\" dataKey=\"visitors\" stroke=\"#6366f1\" strokeWidth={2} />\n    <Tooltip content={<CustomTooltip />} />\n  </LineChart>\n</ResponsiveContainer>\n```"),
+
+              22: ("React + Framer Motion", "3D 카드 틸트 + 글로우 효과",
+                   "마우스 위치에 반응하는 3D 틸트 카드를 만들어보세요.\n\n**① 마우스 위치 추적** — 카드 내 마우스 위치에 따라 X/Y 기울기\n**② 반사광 효과** — 마우스 위치에 따라 빛이 반사되는 그라디언트\n**③ 스프링 물리** — 마우스를 떼면 스프링처럼 원위치\n\n```jsx\nconst rotateX = useMotionValue(0);\nconst rotateY = useMotionValue(0);\n\nfunction handleMouseMove(e) {\n  const rect = e.currentTarget.getBoundingClientRect();\n  rotateX.set((e.clientY - rect.top - rect.height / 2) / 10);\n  rotateY.set(-(e.clientX - rect.left - rect.width / 2) / 10);\n}\n```"),
+
+              23: ("GSAP + ScrollTrigger", "풀페이지 스크롤 구현",
+                   "섹션별로 스냅되는 풀페이지 스크롤을 만들어보세요.\n\n**① 섹션 스냅** — 스크롤 시 다음 섹션으로 부드럽게 이동\n**② 진행 인디케이터** — 현재 섹션 위치를 점으로 표시 (우측)\n**③ 각 섹션 진입 애니메이션** — 섹션별로 다른 방향에서 등장\n**④ 키보드 지원** — 방향키로 섹션 이동\n\n```js\nconst sections = gsap.utils.toArray('.section');\nsections.forEach((section) => {\n  ScrollTrigger.create({\n    trigger: section,\n    start: 'top top',\n    snap: 1,\n    pin: true,\n  });\n});\n```"),
+
+              24: ("React 또는 Vue", "포트폴리오 랜딩 페이지 완성",
+                   "24주 멘토링 최종 과제! 지금까지 배운 모든 것을 담은 포트폴리오 랜딩 페이지를 완성하세요.\n\n**필수 포함 요소:**\n✅ Hero 섹션 (진입 애니메이션)\n✅ About 섹션 (스크롤 애니메이션)\n✅ Works 섹션 (hover 인터랙션)\n✅ Contact 섹션\n✅ 반응형 (모바일 대응)\n✅ 다크모드\n\n**추가하면 좋은 것:**\n⭐ 커스텀 커서\n⭐ 페이지 전환 애니메이션\n⭐ 스크롤 진행 바\n\n24주 동안 정말 수고 많으셨어요! 완성된 포트폴리오를 공유해주세요 🎉"),
           }
-          EOF
-          )
 
-          curl -s -X POST "$DISCORD_WEBHOOK" \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD"
+          tool, topic, content = problems[week]
+          webhook = os.environ["DISCORD_WEBHOOK"]
+
+          payload = {
+              "username": "Frontend Mentor",
+              "embeds": [{
+                  "title": f"🎨 {week}주차 금요일 문제 — UI + 모션편",
+                  "color": 15844367,
+                  "fields": [
+                      {"name": "🛠 사용 도구", "value": f"**{tool}**"},
+                      {"name": f"문제: {topic}", "value": content},
+                      {"name": "⏰ 기한", "value": f"**{deadline}** 자정까지\nStackBlitz 또는 CodePen 링크를 디스코드에 공유해주세요!"},
+                  ],
+                  "footer": {"text": f"{week}주차 / 금요일 / {tool} | 퍼블리싱 실력 발휘할 차례예요 🎨"}
+              }]
+          }
+
+          r = requests.post(webhook, json=payload)
+          print(f"Discord 전송 완료: {r.status_code}")
+          PYEOF
