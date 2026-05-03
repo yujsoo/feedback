@@ -19,7 +19,7 @@ jobs:
 
           KST = timezone(timedelta(hours=9))
           today = datetime.now(KST)
-          start = datetime(2026, 5, 3, tzinfo=KST)
+          start = datetime(2026, 5, 5, tzinfo=KST)
           diff_days = max((today - start).days, 0)
           week = diff_days // 7 + 1
 
