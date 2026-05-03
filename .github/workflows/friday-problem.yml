@@ -20,7 +20,7 @@ jobs:
           DIFF_DAYS=$(( (TODAY_SEC - START_SEC) / 86400 ))
           WEEK=$(( DIFF_DAYS / 7 + 1 ))
 
-          if [ $WEEK -lt 1 ] || [ $WEEK -gt 12 ]; then
+          if [ $WEEK -lt 1 ] || [ $WEEK -gt 24 ]; then
             echo "커리큘럼 범위 밖입니다. (${WEEK}주차)"
             exit 0
           fi
@@ -74,7 +74,55 @@ jobs:
                 ;;
             12) TOPIC="실전 클론 — 자유 선택"
                 TOOL="React 또는 Vue (자유 선택)"
-                CONTENT="지금까지 배운 것을 모두 활용해서 실제 사이트를 클론해보세요.\n\n**추천 사이트:**\n- [Apple](https://apple.com) — 스크롤 애니메이션\n- [Linear](https://linear.app) — 마이크로 인터랙션\n- [Stripe](https://stripe.com) — 그라디언트 + 모션\n- 본인이 좋아하는 사이트 자유 선택 가능!\n\n**필수 요소:**\n✅ 진입 애니메이션\n✅ 스크롤 애니메이션\n✅ hover 인터랙션\n✅ 반응형\n\n12주 마지막 과제입니다. 최선을 다해보세요! 🎉"
+                CONTENT="지금까지 배운 것을 모두 활용해서 실제 사이트를 클론해보세요.\n\n**추천 사이트:**\n- Apple — 스크롤 애니메이션\n- Linear — 마이크로 인터랙션\n- Stripe — 그라디언트 + 모션\n- 본인이 좋아하는 사이트 자유 선택 가능!\n\n**필수 요소:**\n✅ 진입 애니메이션\n✅ 스크롤 애니메이션\n✅ hover 인터랙션\n✅ 반응형\n\n12주 마지막 과제입니다. 최선을 다해보세요! 🎉"
+                ;;
+            13) TOPIC="Three.js 기초 — 3D 오브젝트 만들기"
+                TOOL="Three.js"
+                CONTENT="Three.js로 브라우저에 3D 오브젝트를 렌더링해보세요.\n\n**① Scene 세팅** — Scene, Camera, Renderer 기본 구성\n**② 3D 도형** — BoxGeometry, SphereGeometry 생성 + 재질(Material) 적용\n**③ 애니메이션** — requestAnimationFrame으로 오브젝트 회전\n**④ 조명** — AmbientLight, DirectionalLight 추가\n\n```js\nconst scene = new THREE.Scene();\nconst camera = new THREE.PerspectiveCamera(75, width/height, 0.1, 1000);\nconst geometry = new THREE.BoxGeometry();\nconst material = new THREE.MeshStandardMaterial({ color: 0x6366f1 });\nconst cube = new THREE.Mesh(geometry, material);\n```"
+                ;;
+            14) TOPIC="Lottie 애니메이션 활용하기"
+                TOOL="HTML + Lottie"
+                CONTENT="Lottie를 사용해 JSON 애니메이션을 웹에 적용해보세요.\n\n**① LottieFiles에서 무료 애니메이션 다운로드** — lottiefiles.com\n**② 기본 재생** — autoplay, loop 설정\n**③ 인터랙션** — 버튼 hover 시 재생, 클릭 시 정지\n**④ 속도 조절** — setSpeed()로 재생 속도 변경\n\n```js\nimport lottie from 'lottie-web';\n\nconst anim = lottie.loadAnimation({\n  container: document.getElementById('lottie'),\n  renderer: 'svg',\n  loop: true,\n  autoplay: false,\n  path: 'animation.json',\n});\n\nbtn.addEventListener('mouseenter', () => anim.play());\nbtn.addEventListener('mouseleave', () => anim.stop());\n```"
+                ;;
+            15) TOPIC="CSS 3D Transform으로 카드 뒤집기"
+                TOOL="HTML + CSS"
+                CONTENT="순수 CSS 3D Transform으로 플립 카드를 만들어보세요.\n\n**① 앞면 / 뒷면** — 각각 다른 내용의 카드 2개\n**② hover 시 Y축 180도 회전** — perspective 설정 필수\n**③ backface-visibility** — 뒷면이 보이지 않도록\n**④ 4개 이상의 카드**를 그리드로 배치\n\n```css\n.card-inner {\n  transform-style: preserve-3d;\n  transition: transform 0.6s;\n}\n.card:hover .card-inner {\n  transform: rotateY(180deg);\n}\n.card-back {\n  backface-visibility: hidden;\n  transform: rotateY(180deg);\n}\n```"
+                ;;
+            16) TOPIC="SVG 패스 애니메이션"
+                TOOL="HTML + CSS + GSAP"
+                CONTENT="SVG와 GSAP으로 드로잉 애니메이션을 만들어보세요.\n\n**① SVG 선 그리기 애니메이션** — stroke-dasharray, stroke-dashoffset으로 선이 그려지는 효과\n**② 로고 드로잉** — SVG 패스가 순서대로 그려지는 애니메이션\n**③ 스크롤 연동** — 스크롤 내릴수록 선이 그려짐\n\n```js\ngsap.fromTo(path, \n  { strokeDashoffset: path.getTotalLength() },\n  { strokeDashoffset: 0, duration: 2, ease: 'none',\n    scrollTrigger: { trigger: path, scrub: true }\n  }\n);\n```"
+                ;;
+            17) TOPIC="커스텀 커서 인터랙션"
+                TOOL="HTML + GSAP"
+                CONTENT="기본 커서를 숨기고 커스텀 커서를 만들어보세요.\n\n**① 기본 커서** — 동그란 원이 마우스를 부드럽게 따라다님 (GSAP lerp)\n**② 호버 효과** — 링크/버튼 위에서 커서가 커지거나 색이 변함\n**③ 클릭 효과** — 클릭 시 커서가 잠깐 작아졌다 돌아옴\n**④ 텍스트 커서** — 특정 영역에서 커서 안에 텍스트 표시\n\n```js\ndocument.addEventListener('mousemove', (e) => {\n  gsap.to(cursor, {\n    x: e.clientX,\n    y: e.clientY,\n    duration: 0.3,\n    ease: 'power2.out'\n  });\n});\n```"
+                ;;
+            18) TOPIC="무한 수평 스크롤 갤러리"
+                TOOL="Vue 3 + GSAP"
+                CONTENT="끝없이 흐르는 수평 스크롤 갤러리를 만들어보세요.\n\n**① 이미지/카드 무한 루프** — 복사본을 이어붙여 끊김 없이 반복\n**② 마우스 hover 시 속도 조절** — hover하면 느려지고, 벗어나면 원래 속도\n**③ 방향 전환** — 위 아래 두 줄이 반대 방향으로 흐름\n\n```js\ngsap.to('.track', {\n  x: '-50%',\n  duration: 20,\n  ease: 'none',\n  repeat: -1,\n});\n```"
+                ;;
+            19) TOPIC="Canvas 파티클 효과"
+                TOOL="HTML + Canvas"
+                CONTENT="Canvas API로 인터랙티브 파티클 시스템을 만들어보세요.\n\n**① 파티클 생성** — 랜덤 위치, 속도, 크기의 점들이 움직임\n**② 마우스 인터랙션** — 마우스 근처 파티클이 밀려남\n**③ 연결선** — 가까운 파티클끼리 선으로 연결\n**④ 색상 변화** — 시간에 따라 색상이 서서히 변함\n\n```js\nclass Particle {\n  constructor() {\n    this.x = Math.random() * canvas.width;\n    this.y = Math.random() * canvas.height;\n    this.vx = (Math.random() - 0.5) * 2;\n    this.vy = (Math.random() - 0.5) * 2;\n  }\n  update() { this.x += this.vx; this.y += this.vy; }\n}\n```"
+                ;;
+            20) TOPIC="GSAP 모핑 & 텍스트 애니메이션"
+                TOOL="GSAP"
+                CONTENT="GSAP으로 고급 텍스트 & 모핑 애니메이션을 만들어보세요.\n\n**① SplitText** — 텍스트를 글자/단어 단위로 분리해 순차 애니메이션\n**② 카운터 애니메이션** — 숫자가 0에서 목표값까지 올라가는 효과\n**③ MorphSVG** — SVG 도형이 다른 도형으로 부드럽게 변환\n\n```js\n// 텍스트를 글자 단위로 애니메이션\ngsap.from('.title span', {\n  opacity: 0,\n  y: 100,\n  rotationX: -90,\n  stagger: 0.05,\n  duration: 0.8,\n  ease: 'back.out(2)'\n});\n\n// 카운터\ngsap.to(counter, { innerText: 1234, snap: { innerText: 1 }, duration: 2 });\n```"
+                ;;
+            21) TOPIC="인터랙티브 차트 만들기"
+                TOOL="React + Recharts"
+                CONTENT="Recharts로 인터랙티브 데이터 시각화를 구현해보세요.\n\n**① 라인 차트** — 월별 방문자 수 추이 (애니메이션 진입)\n**② 바 차트** — 카테고리별 매출 비교\n**③ 커스텀 툴팁** — hover 시 스타일링된 툴팁 표시\n**④ 반응형** — 모바일/데스크탑 모두 잘 보이도록\n\n```jsx\nimport { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';\n\n<ResponsiveContainer width=\"100%\" height={300}>\n  <LineChart data={data}>\n    <Line type=\"monotone\" dataKey=\"visitors\" stroke=\"#6366f1\" strokeWidth={2} />\n    <Tooltip content={<CustomTooltip />} />\n  </LineChart>\n</ResponsiveContainer>\n```"
+                ;;
+            22) TOPIC="3D 카드 틸트 + 글로우 효과"
+                TOOL="React + Framer Motion"
+                CONTENT="마우스 위치에 반응하는 3D 틸트 카드를 만들어보세요.\n\n**① 마우스 위치 추적** — 카드 내 마우스 위치에 따라 X/Y 기울기\n**② 반사광 효과** — 마우스 위치에 따라 빛이 반사되는 그라디언트\n**③ 호버 시 부유** — z-depth가 올라오는 느낌의 그림자\n**④ 스프링 물리** — 마우스를 떼면 스프링처럼 원위치\n\n```jsx\nconst rotateX = useMotionValue(0);\nconst rotateY = useMotionValue(0);\n\nfunction handleMouseMove(e) {\n  const rect = e.currentTarget.getBoundingClientRect();\n  const x = (e.clientY - rect.top - rect.height / 2) / 10;\n  const y = -(e.clientX - rect.left - rect.width / 2) / 10;\n  rotateX.set(x);\n  rotateY.set(y);\n}\n```"
+                ;;
+            23) TOPIC="풀페이지 스크롤 구현"
+                TOOL="GSAP + ScrollTrigger"
+                CONTENT="섹션별로 스냅되는 풀페이지 스크롤을 만들어보세요.\n\n**① 섹션 스냅** — 스크롤 시 다음 섹션으로 부드럽게 이동\n**② 진행 인디케이터** — 현재 섹션 위치를 점으로 표시 (우측)\n**③ 각 섹션 진입 애니메이션** — 섹션별로 다른 방향에서 등장\n**④ 키보드 지원** — 방향키로 섹션 이동\n\n```js\nconst sections = gsap.utils.toArray('.section');\nsections.forEach((section) => {\n  ScrollTrigger.create({\n    trigger: section,\n    start: 'top top',\n    snap: 1,\n    pin: true,\n  });\n});\n```"
+                ;;
+            24) TOPIC="포트폴리오 랜딩 페이지 완성"
+                TOOL="React 또는 Vue (자유 선택)"
+                CONTENT="24주 멘토링 최종 과제! 지금까지 배운 모든 것을 담은 포트폴리오 랜딩 페이지를 완성하세요.\n\n**필수 포함 요소:**\n✅ Hero 섹션 (진입 애니메이션)\n✅ About 섹션 (스크롤 애니메이션)\n✅ 작업물(Works) 섹션 (hover 인터랙션)\n✅ 연락처(Contact) 섹션\n✅ 반응형 (모바일 대응)\n✅ 다크모드\n\n**추가하면 좋은 것:**\n⭐ 커스텀 커서\n⭐ 페이지 전환 애니메이션\n⭐ 스크롤 진행 바\n\n24주 동안 정말 수고 많으셨어요! 완성된 포트폴리오를 공유해주세요 🎉🎊"
                 ;;
           esac
 

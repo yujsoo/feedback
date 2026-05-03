@@ -20,7 +20,7 @@ jobs:
           DIFF_DAYS=$(( (TODAY_SEC - START_SEC) / 86400 ))
           WEEK=$(( DIFF_DAYS / 7 + 1 ))
 
-          if [ $WEEK -lt 1 ] || [ $WEEK -gt 12 ]; then
+          if [ $WEEK -lt 1 ] || [ $WEEK -gt 24 ]; then
             echo "커리큘럼 범위 밖입니다. (${WEEK}주차)"
             exit 0
           fi
@@ -87,6 +87,66 @@ jobs:
                 TOOL="Nuxt 3"
                 TOOL_COLOR=5814783
                 CONTENT="Nuxt 3에서 안정적인 비동기 처리를 구현해보세요.\n\n**① useAsyncData로 데이터 로딩** — 로딩 상태, 에러 상태 표시\n**② error.vue** — 전역 에러 페이지 만들기\n**③ try/catch** — API 실패 시 사용자에게 에러 메시지 표시\n\n```vue\n<script setup>\nconst { data, error, pending } = await useAsyncData('posts', () =>\n  $fetch('/api/posts')\n)\n</script>\n```"
+                ;;
+            13) TOPIC="React Server Components 이해하기"
+                TOOL="Next.js"
+                TOOL_COLOR=5814783
+                CONTENT="Next.js App Router에서 Server Component와 Client Component의 차이를 구현으로 확인해보세요.\n\n**① Server Component** — DB에서 데이터를 직접 가져와 렌더링 (fetch, async/await)\n**② Client Component** — 'use client' 선언 후 useState로 인터랙션 처리\n**③ 혼합 사용** — Server Component 안에 Client Component 포함시키기\n\n```tsx\n// ServerPage.tsx (서버 컴포넌트)\nasync function ServerPage() {\n  const data = await fetch('...'); // 직접 fetch 가능\n  return <ClientButton initialData={data} />;\n}\n\n// ClientButton.tsx\n'use client';\nfunction ClientButton({ initialData }) {\n  const [count, setCount] = useState(0);\n}\n```\n\n💬 **같이 적어주세요:** 어떤 컴포넌트를 Server / Client로 나눠야 할까요?"
+                ;;
+            14) TOPIC="Composables 패턴으로 로직 분리하기"
+                TOOL="Vue 3"
+                TOOL_COLOR=5814783
+                CONTENT="Vue 3의 Composables를 만들어 로직을 재사용해보세요.\n\n**① useMouse** — 마우스 현재 위치(x, y)를 반환하는 composable\n**② useFetch** — URL을 받아 데이터, 로딩, 에러 상태를 반환하는 composable\n**③ 컴포넌트에서 사용** — 두 composable을 하나의 컴포넌트에서 함께 사용\n\n```js\n// useMouse.js\nexport function useMouse() {\n  const x = ref(0);\n  const y = ref(0);\n  // 여기에 구현\n  return { x, y };\n}\n```\n\n💬 **같이 적어주세요:** React 커스텀 훅과 Vue Composables의 공통점과 차이점은?"
+                ;;
+            15) TOPIC="TypeScript + React 기초"
+                TOOL="React + TypeScript"
+                TOOL_COLOR=5814783
+                CONTENT="React 컴포넌트에 TypeScript를 적용해보세요.\n\n**① Props 타입 정의** — interface로 컴포넌트 props 타입 선언\n**② useState 타입** — 제네릭으로 상태 타입 명시\n**③ 이벤트 핸들러 타입** — React.ChangeEvent, React.MouseEvent 사용\n\n```tsx\ninterface CardProps {\n  title: string;\n  description: string;\n  onClick: () => void;\n}\n\nfunction Card({ title, description, onClick }: CardProps) {\n  const [isLiked, setIsLiked] = useState<boolean>(false);\n  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {};\n}\n```\n\n💬 **같이 적어주세요:** TypeScript를 쓰면 어떤 점이 편해졌나요?"
+                ;;
+            16) TOPIC="TypeScript + Vue 3"
+                TOOL="Vue 3 + TypeScript"
+                TOOL_COLOR=5814783
+                CONTENT="Vue 3 컴포넌트에 TypeScript를 적용해보세요.\n\n**① defineProps 타입** — withDefaults + defineProps로 타입 안전한 props\n**② ref 타입** — Ref<타입>으로 명시적 타입 선언\n**③ emit 타입** — defineEmits로 이벤트 타입 정의\n\n```vue\n<script setup lang=\"ts\">\ninterface Props {\n  title: string;\n  count?: number;\n}\nconst props = withDefaults(defineProps<Props>(), { count: 0 });\nconst emit = defineEmits<{ update: [value: number] }>();\n</script>\n```"
+                ;;
+            17) TOPIC="TanStack Query로 서버 상태 관리"
+                TOOL="React + TanStack Query"
+                TOOL_COLOR=5814783
+                CONTENT="TanStack Query(React Query)를 사용해 데이터 페칭을 관리해보세요.\n\n**① useQuery** — 게시글 목록 가져오기 (로딩/에러/성공 상태 처리)\n**② useMutation** — 새 게시글 추가 후 목록 자동 갱신\n**③ 캐싱 확인** — 같은 데이터를 다시 요청할 때 네트워크 탭에서 캐싱 확인\n\n```tsx\nconst { data, isLoading, error } = useQuery({\n  queryKey: ['posts'],\n  queryFn: () => fetch('/api/posts').then(r => r.json()),\n});\n\nconst mutation = useMutation({\n  mutationFn: (newPost) => fetch('/api/posts', { method: 'POST', body: JSON.stringify(newPost) }),\n  onSuccess: () => queryClient.invalidateQueries({ queryKey: ['posts'] }),\n});\n```"
+                ;;
+            18) TOPIC="VueUse로 생산성 높이기"
+                TOOL="Vue 3 + VueUse"
+                TOOL_COLOR=5814783
+                CONTENT="VueUse의 유용한 composable들을 활용해보세요.\n\n**① useLocalStorage** — 다크모드 설정을 localStorage에 자동 저장\n**② useIntersectionObserver** — 요소가 화면에 보일 때 애니메이션 트리거\n**③ useDebounce** — 검색 input에 디바운스 적용 (300ms)\n\n```vue\n<script setup>\nimport { useLocalStorage, useDebounce, useIntersectionObserver } from '@vueuse/core';\n\nconst isDark = useLocalStorage('dark-mode', false);\nconst search = ref('');\nconst debouncedSearch = useDebounce(search, 300);\n</script>\n```"
+                ;;
+            19) TOPIC="Next.js Server Actions & API Routes"
+                TOOL="Next.js"
+                TOOL_COLOR=5814783
+                CONTENT="Next.js에서 서버 로직을 처리하는 두 가지 방법을 구현해보세요.\n\n**① API Route** — /api/todos GET/POST 엔드포인트 만들기\n**② Server Action** — form 제출로 DB에 데이터 저장 (API 없이)\n**③ 차이 비교** — 언제 API Route를, 언제 Server Action을 쓰는 게 좋을지 정리\n\n```tsx\n// Server Action\nasync function createTodo(formData: FormData) {\n  'use server';\n  const title = formData.get('title');\n  await db.todo.create({ data: { title } });\n}\n```"
+                ;;
+            20) TOPIC="Nuxt Server Routes & API"
+                TOOL="Nuxt 3"
+                TOOL_COLOR=5814783
+                CONTENT="Nuxt 3에서 서버 API를 만들어보세요.\n\n**① server/api** — GET /api/users, POST /api/users 엔드포인트 구현\n**② $fetch** — 클라이언트에서 만든 API 호출\n**③ useServerFetch** — SSR 환경에서 데이터 페칭\n\n```ts\n// server/api/users.get.ts\nexport default defineEventHandler(async (event) => {\n  return [\n    { id: 1, name: '홍길동' },\n    { id: 2, name: '김철수' },\n  ];\n});\n```"
+                ;;
+            21) TOPIC="Vitest로 테스트 작성하기"
+                TOOL="React + Vitest"
+                TOOL_COLOR=5814783
+                CONTENT="컴포넌트와 유틸 함수에 테스트를 작성해보세요.\n\n**① 유틸 함수 테스트** — 가격 포맷 함수 (1000 → '1,000원') 테스트\n**② 컴포넌트 테스트** — 버튼 클릭 시 카운터 증가 테스트 (React Testing Library)\n**③ 비동기 테스트** — API 모킹 후 데이터 로딩 테스트\n\n```ts\nimport { describe, it, expect } from 'vitest';\n\ndescribe('formatPrice', () => {\n  it('1000을 1,000원으로 변환한다', () => {\n    expect(formatPrice(1000)).toBe('1,000원');\n  });\n});\n```"
+                ;;
+            22) TOPIC="성능 최적화 — 메모이제이션"
+                TOOL="React"
+                TOOL_COLOR=5814783
+                CONTENT="불필요한 리렌더링을 막는 최적화 기법을 적용해보세요.\n\n**① React.memo** — props가 바뀌지 않으면 리렌더링 안 되는 컴포넌트\n**② useMemo** — 무거운 계산 결과 캐싱 (긴 배열 필터링)\n**③ useCallback** — 자식 컴포넌트에 넘기는 함수 메모이제이션\n**④ React DevTools Profiler**로 최적화 전/후 비교\n\n```jsx\nconst ExpensiveList = React.memo(({ items }) => {\n  // ...\n});\n\nconst filtered = useMemo(() => items.filter(i => i.active), [items]);\nconst handleClick = useCallback((id) => removeItem(id), [removeItem]);\n```\n\n💬 **같이 적어주세요:** 무조건 메모이제이션이 좋을까요? 트레이드오프는?"
+                ;;
+            23) TOPIC="접근성(A11y) 적용하기"
+                TOOL="React"
+                TOOL_COLOR=5814783
+                CONTENT="웹 접근성을 고려한 컴포넌트를 만들어보세요.\n\n**① 키보드 접근** — Tab, Enter, Escape로 모달 열기/닫기\n**② ARIA 속성** — aria-label, aria-expanded, role 적용\n**③ 스크린리더 테스트** — VoiceOver(Mac) 또는 NVDA로 읽히는지 확인\n\n```jsx\n<button\n  aria-expanded={isOpen}\n  aria-controls=\"menu\"\n  onClick={() => setIsOpen(!isOpen)}\n>\n  메뉴\n</button>\n<ul id=\"menu\" role=\"menu\" hidden={!isOpen}>\n  ...\n</ul>\n```\n\n💬 **같이 적어주세요:** 접근성이 왜 중요할까요?"
+                ;;
+            24) TOPIC="포트폴리오 프로젝트 — 기획 & 설계"
+                TOOL="React 또는 Next.js (자유 선택)"
+                TOOL_COLOR=5814783
+                CONTENT="24주 멘토링의 마지막 과제입니다! 나만의 포트폴리오 사이트를 기획해보세요.\n\n**제출할 것:**\n**① 사이트 구조** — 어떤 페이지/섹션으로 구성할지 (텍스트로 정리)\n**② 사용 기술 스택** — 어떤 프레임워크, 라이브러리를 쓸지\n**③ 와이어프레임** — 간단한 스케치 or Figma\n**④ 차별점** — 다른 포트폴리오와 다르게 만들 포인트\n\n이걸 바탕으로 다음 주부터 실제로 만들어볼 거예요!\n\n지금까지 24주 동안 정말 수고 많으셨어요. 여기까지 온 것만으로도 대단합니다! 🎉"
                 ;;
           esac
 
