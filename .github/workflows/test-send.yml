@@ -3,6 +3,7 @@ name: Test Send
 on:
   schedule:
     - cron: '21 7 3 5 *'  # 2026-05-03 07:21 UTC (KST 16:21)
+  workflow_dispatch:
 
 jobs:
   send-test:
