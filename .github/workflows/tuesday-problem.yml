@@ -14,17 +14,17 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: |
           python3 << 'PYEOF'
-          import os, math, requests
+          import os, requests
           from datetime import datetime, timedelta, timezone
 
           KST = timezone(timedelta(hours=9))
           today = datetime.now(KST)
-          start = datetime(2026, 5, 6, tzinfo=KST)
-          diff_days = (today - start).days
+          start = datetime(2026, 5, 3, tzinfo=KST)
+          diff_days = max((today - start).days, 0)
           week = diff_days // 7 + 1
 
-          if week < 1 or week > 24:
-              print(f"커리큘럼 범위 밖: {week}주차")
+          if week > 24:
+              print(f"커리큘럼 완료: {week}주차")
               exit(0)
 
           deadline = (today + timedelta(days=3)).strftime("%Y년 %-m월 %-d일")
